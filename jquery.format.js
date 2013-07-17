@@ -1,5 +1,9 @@
 /**
  *	jQuery string format plugin
+ *  http://github.com/krzyzak00/format
+ *
+ *  Copright (c) 2011 Przemysław Kościelniak
+ *  Dual licensed under the MIT and GPL
  *
  *	Adds Python-like format function to jQuery
  *	This is basic implementation and it doesn't cover all Python format features
@@ -9,9 +13,9 @@
  */
 
 /*
- 	Usage examples:
+	Usage examples:
 
- 	$.fn.format('The quick {} {} jumped over the {} {}', "brown", "fox", "lazy", "dog");
+	$.fn.format('The quick {} {} jumped over the {} {}', "brown", "fox", "lazy", "dog");
 	$.fn.format('The quick {0} {2} jumped over the {1} {3}', "brown", "lazy", "fox", "dog");
 	$.fn.format('The quick {_brown_} {_fox_} jumped over the {_lazy_} {_dog_}', {
 		_brown_: "brown",
@@ -27,23 +31,32 @@
 	});
 */
 
-(function($) {
+(function (factory) {
 
-	$.fn.format = function() {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else {
+        // Browser globals
+        factory(jQuery);
+    }
+
+}(function ($) {
+
+    $.fn.format = function() {
 
 		var isArguments = function(obj) {
-
-			return obj.constructor != String && obj.constructor != Array && obj.length;
+			return obj.constructor !== String && obj.constructor !== Array && obj.length;
 		};
 
 		var args = isArguments(arguments[0]) ? arguments[0] : arguments,
-			alen	 = args.length;
+			alen = args.length;
 
 		// no arguments given
-		if (!alen) return null;
+		if (!alen) { return null; }
 
 		// if only one argument given assume it's string and simply return it
-		else if (alen == 1) return args[0];
+		else if (alen === 1) { return args[0]; }
 
 		// second argument is either variable or object with named vars
 		else {
@@ -52,10 +65,10 @@
 				matches = str.match(/{[^}]*}/g),
 				mlen = matches ? matches.length : 0,
 				i = 0,
-				name, val;
+				name, val, r;
 
 			// for object with named variables
-			if (typeof(args[1]) == 'object') {
+			if (typeof(args[1]) === 'object') {
 
 				while (i < mlen) {
 
@@ -63,12 +76,13 @@
 					val = args[1][name];
 					var rs = '';
 
-					if (isNaN(parseInt(name)))
+					if (isNaN(parseInt(name, 10))) {
 						rs = "{" + name + "}";
-					else
+					} else {
 						rs = "{[" + i + "]}";
+					}
 
-					var r = new RegExp(rs, "g");
+					r = new RegExp(rs, "g");
 					str = str.replace(r, args[1][name]);
 
 					i++;
@@ -78,19 +92,21 @@
 
 			} else { // for variables as arguments
 
-				if (!matches || matches.length !== alen - 1)
+				if (!matches || matches.length !== alen - 1) {
 					throw "Format: wrong number of arguments, " + str;
+				}
 
 				while (i < alen - 1) {
 
 					// replace {} {} {} ... {}
-					if (matches[i].length == 2)
+					if (matches[i].length === 2) {
 						str = str.replace('{}', args[i + 1]);
+					}
 
 					// replace {0} {1} {2} ... {n}
 					else {
 
-						var r = new RegExp("{[" + i + "]}", "g");
+						r = new RegExp("{[" + i + "]}", "g");
 						str = str.replace(r, args[i + 1]);
 					}
 
@@ -100,6 +116,5 @@
 				return str;
 			}
 		}
-	}
-
-})(jQuery);
+	};
+}));
